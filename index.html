@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <title>تشخیص کرونا از طریق سرفه</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Tahoma', sans-serif;
+            direction: rtl;
+            text-align: center;
+            background: url(/static/back.png) fixed;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: #190824;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px #613680;
+            max-width: 900px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 1s ease-in;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            color: #FFB347;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.5s ease;
+        }
+
+        p {
+            color: #FFF;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .button {
+            position: relative;
+            color: #020204;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        #StartBtn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url(/static/flag.png) no-repeat center center;
+            background-size: cover;
+            opacity: 0.6;
+            filter: blur(1px);
+            z-index: -1;
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        #StartBtn:hover {
+            color: #00000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #recordButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url(/static/earth.png) no-repeat center center;
+            background-size: contain;
+            z-index: -1;
+        }
+
+        #recordButton:hover {
+            color: #00000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: url(/static/back.png) fixed;
+        }
+
+        #recordButton.clicked::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url(/static/mask.png) no-repeat center center;
+            background-size: 130px;
+            z-index: 0;
+            background-position: 38px 80px;
+        }
+
+        button#recordButton {
+            width: 200px;
+            height: 200px;
+            border-radius: 100px;
+        }
+
+        #recordButton.recording {
+            animation: pulse 1.5s infinite;
+            color: transparent;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mask-box {
+            background-color: #000;
+            width: 100%;
+            height: 35vh;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mask-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mask-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #dc3545;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .mask-message.success {
+            color: #28a745;
+            animation: successFade 1s ease;
+            display: block;
+        }
+
+        @keyframes successFade {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .face-box {
+            position: absolute;
+            border: 2px solid red;
+            display: none;
+        }
+
+        .face-box.masked {
+            border-color: green;
+        }
+
+        .status-text {
+            color: #FFD700;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        #result {
+            padding: 1.5rem;
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 1.5rem;
+            margin: 2rem 0;
+            text-align: right;
+        }
+
+        #result.healthy {
+            background-color: #28a745;
+            animation: resultFade 0.5s ease;
+        }
+
+        #result.infected {
+            background-color: #dc3545;
+            animation: resultFade 0.5s ease;
+        }
+
+        @keyframes resultFade {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #spectrogram {
+            width: 100%;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: #FEC260;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .corona-particle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: url(/static/cor.png) no-repeat center center;
+            background-size: contain;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); opacity: 0.6; }
+            50% { transform: translate(var(--random-x), var(--random-y)); opacity: 0.8; }
+            100% { transform: translate(0, 0); opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="step active" id="step1">
+            <h1>Cough Detection System</h1>
+            <p>
+                به سیستم تشخیص کرونا از سرفه خوش آمدید
+
+            </p>
+            <button class="button" id="StartBtn" onclick="nextStep(2)">Start</button>
+        </div>
+        <div class="step" id="step2">
+            <h1>لطفاً چهره خود را رو به دوربین بگیرید</h1>
+            <div class="mask-box">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <div class="mask-message" id="maskMessage">لطفاً ماسک بزنید</div>
+                <div class="face-box" id="faceBox"></div>
+            </div>
+            <p style="color: #FFD700; font-style: italic;">
+                
+            </p>
+        </div>
+        <div class="step" id="step3">
+            <h1>ضبط صدای سرفه</h1>
+            <button id="recordButton" class="button">شروع ضبط</button>
+            <div class="status-text" id="timer">زمان</div>
+            <p class=""></p>
+        </div>
+        <div class="step" id="step4">
+            <h1>Analysis Result</h1>
+            <div id="result">
+                <div>Result: <span id="resultText">در حال آنالیز</span></div>
+                <div>Probability: <span id="probabilityText">بارگذاری</span></div>
+            </div>
+            <img id="spectrogram">
+            <div>
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function generateBubbleData(probabilityDisease, probabilityHealth) {
+            const dataRed = [];
+            const dataGreen = [];
+            for (let i = 0; i < probabilityDisease; i++) {
+                dataRed.push({
+                    x: Math.random() * 100,
+                    y: Math.random() * 100,
+                    r: Math.random() * 10 + 5
+                });
+            }
+
+            for (let i = 0; i < probabilityHealth; i++) {
+                dataGreen.push({
+                    x: Math.random() * 100,
+                    y: Math.random() * 100,
+                    r: Math.random() * 10 + 5
+                });
+            }
+
+            return {
+                datasets: [
+                    {
+                        label: 'احتمال بیماری',
+                        data: dataRed,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'سلامت',
+                        data: dataGreen,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+        }
+
+        let chartInstance = null;
+        function updateChart(probabilityDisease, probabilityHealth) {
+            const data = generateBubbleData(probabilityDisease, probabilityHealth);
+            const config = {
+                type: 'bubble',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: {
+                            display: true,
+                            text: 'نمودار سلامت و احتمال بیماری بیمار'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    label += `x: ${context.raw.x.toFixed(2)}, y: ${context.raw.y.toFixed(2)}`;
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'موقعیت تصادفی (محور X)' },
+                            min: 0,
+                            max: 100
+                        },
+                        y: {
+                            title: { display: true, text: 'موقعیت تصادفی (محور Y)' },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            };
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            chartInstance = new Chart(ctx, config);
+        }
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let countdown;
+        let currentStep = 1;
+        let stream;
+        let maskDetected = false;
+
+        function updateProgressBar() {
+            const progress = (currentStep / 4) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function nextStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateProgressBar();
+
+            if (step === 2) {
+                startWebcam();
+            } else if (step !== 2 && stream) {
+                stopWebcam();
+            }
+        }
+
+        async function startWebcam() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('webcam');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    console.log('Webcam loaded successfully');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    checkMask();
+                };
+                video.onerror = () => {
+                    console.error('Webcam stream error');
+                    document.getElementById('maskMessage').textContent = 'خطا در بارگذاری وب‌کم';
+                };
+            } catch (error) {
+                console.error('Error accessing webcam:', error);
+                document.getElementById('maskMessage').textContent = 'دسترسی به دوربین ممکن نیست';
+            }
+        }
+
+        function stopWebcam() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        async function checkMask() {
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const maskMessage = document.getElementById('maskMessage');
+            const faceBox = document.getElementById('faceBox');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            async function processFrame() {
+                if (!stream) return;
+
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                console.log('Image Data Length:', imageData.length);
+                console.log('Image Data Preview:', imageData.substring(0, 50));
+
+                const formData = new FormData();
+                try {
+                    const blob = await (await fetch(imageData)).blob();
+                    console.log('Blob Size:', blob.size);
+                    if (blob.size === 0) {
+                        console.error('Blob is empty!');
+                        maskMessage.textContent = 'خطا: تصویر خالی است';
+                        return;
+                    }
+                    formData.append('image', blob, 'frame.jpg');
+
+                    const response = await fetch('/check_mask', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    console.log('Server Response:', data);
+
+                    if (data.mask_detected) {
+                        maskMessage.textContent = '✅ چهره شما تشخیص داده شد';
+                        maskMessage.classList.add('success');
+                        faceBox.classList.add('masked');
+                        faceBox.style.display = 'none';
+                        maskDetected = true;
+
+                        setTimeout(() => {
+                            if (maskDetected) nextStep(3);
+                        }, 3000);
+                    } else {
+                        maskMessage.textContent = '❌ چهره شما تشخیص داده نشد';
+                        maskMessage.classList.remove('success');
+                        maskMessage.style.display = 'block';
+                        faceBox.classList.remove('masked');
+                        faceBox.style.display = 'block';
+                        maskDetected = false;
+
+                        faceBox.style.left = `${canvas.width / 4}px`;
+                        faceBox.style.top = `${canvas.height / 4}px`;
+                        faceBox.style.width = `${canvas.width / 2}px`;
+                        faceBox.style.height = `${canvas.height / 2}px`;
+                    }
+                } catch (error) {
+                    console.error('Error checking mask:', error);
+                    maskMessage.textContent = 'خطا در ارتباط با سرور';
+                }
+
+                if (currentStep === 2) {
+                    requestAnimationFrame(processFrame);
+                }
+            }
+
+            processFrame();
+        }
+
+        function resetForm() {
+            audioChunks = [];
+            document.getElementById('resultText').textContent = 'Awaiting Analysis...';
+            document.getElementById('probabilityText').textContent = 'Awaiting...';
+            document.getElementById('spectrogram').style.display = 'none';
+            document.getElementById('result').className = '';
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            nextStep(1);
+        }
+
+        async function startRecording() {
+            const btn = document.getElementById('recordButton');
+            const timer = document.getElementById('timer');
+            btn.disabled = true;
+            btn.classList.add('recording');
+            btn.classList.add('clicked');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                let seconds = 7;
+                countdown = setInterval(() => {
+                    timer.textContent = `Time Remaining: ${seconds} Seconds`;
+                    seconds--;
+                    if (seconds < 0) clearInterval(countdown);
+                }, 1000);
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    clearInterval(countdown);
+                    timer.textContent = "Processing...";
+
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.wav');
+
+                    try {
+                        const response = await fetch('/analyze', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        document.getElementById('resultText').textContent = data.result || 'Error Receiving Result';
+                        document.getElementById('probabilityText').textContent =
+                            data.probability ? `${(data.probability * 100).toFixed(1)}%` : 'Unknown';
+                        document.getElementById('result').className =
+                            data.result === 'Healthy' ? 'healthy' : 'infected';
+
+                        if (data.spectrogram) {
+                            const spectrogram = document.getElementById('spectrogram');
+                            spectrogram.style.display = 'block';
+                            spectrogram.src = `data:image/png;base64,${data.spectrogram}`;
+                        }
+
+                        if (data.probability) {
+                            const probabilityDisease = Math.round(data.probability * 100);
+                            const probabilityHealth = 100 - probabilityDisease;
+                            updateChart(probabilityDisease, probabilityHealth);
+                        }
+
+                        nextStep(4);
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        document.getElementById('resultText').textContent = 'Server Connection Error';
+                        nextStep(4);
+                    }
+
+                    btn.disabled = false;
+                    btn.classList.remove('recording');
+                    btn.classList.remove('clicked');
+                };
+
+                mediaRecorder.start();
+                setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, 7000);
+
+            } catch (error) {
+                alert('Microphone access is not allowed!');
+                btn.disabled = false;
+                btn.classList.remove('recording');
+                btn.classList.remove('clicked');
+                timer.textContent = "Ready to Record Again";
+            }
+        }
+
+        document.getElementById('recordButton').addEventListener('click', startRecording);
+
+        function createCoronaParticles(numParticles) {
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('corona-particle');
+
+                const randomSide = Math.floor(Math.random() * 4);
+                let x, y;
+
+                switch (randomSide) {
+                    case 0:
+                        x = Math.random() * containerRect.width;
+                        y = 0;
+                        break;
+                    case 1:
+                        x = containerRect.width;
+                        y = Math.random() * containerRect.height;
+                        break;
+                    case 2:
+                        x = Math.random() * containerRect.width;
+                        y = containerRect.height;
+                        break;
+                    case 3:
+                        x = 0;
+                        y = Math.random() * containerRect.height;
+                        break;
+                }
+
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+
+                const maxMove = 100;
+                const randomX = (Math.random() - 0.5) * maxMove;
+                const randomY = (Math.random() - 0.5) * maxMove;
+                const randomDuration = 8 + Math.random() * 4;
+
+                particle.style.setProperty('--random-x', `${randomX}px`);
+                particle.style.setProperty('--random-y', `${randomY}px`);
+                particle.style.animationDuration = `${randomDuration}s`;
+
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+
+                container.appendChild(particle);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createCoronaParticles(10);
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
